@@ -4,18 +4,56 @@ package main
 import (
 	"fmt"
 	"github.com/BurntSushi/ty/fun"
+	"log"
 	"os"
 	"sge"
+	"slurm"
 	"text/tabwriter"
 	"torque"
 )
 
 func main() {
-	if torque.IsTorque() {
+	if slurm.IsSLURM() {
+		mainSLURM()
+	} else if torque.IsTorque() {
 		mainTORQUE()
 	} else if sge.IsSGE() {
 		mainSGE()
+	} else {
+		log.Fatal("Didn't find any recognized scheduler")
 	}
+}
+
+func mainSLURM() {
+	fmt.Printf("Summary of SLURM nodes with free slots\n\n")
+	counts := slurm.CollectFreeSlots()
+	var _ = counts
+	rows := []string{
+		"Num Nodes\tPartition\tUtilization\tFree slots",
+		"---------\t---------\t-----------\t----------"}
+
+	keys := make([]slurm.NodeStatus, 0, len(counts))
+	for k := range counts {
+		keys = append(keys, k)
+	}
+
+	fun.Sort(func(a, b slurm.NodeStatus) bool {
+		if a.Partition == b.Partition {
+			return float64(a.NpAlloc)/float64(a.NpTotal) <
+				float64(b.NpAlloc)/float64(b.NpTotal)
+		}
+		return a.Partition < b.Partition
+	}, keys)
+
+	for _, k := range keys {
+		if k.NpTotal == k.NpAlloc {
+			continue
+		}
+		rows = append(rows, fmt.Sprintf("%d\t%s\t%d/%d\t%d",
+			counts[k], k.Partition, k.NpAlloc, k.NpTotal, k.NpTotal-k.NpAlloc))
+	}
+
+	printTable(rows)
 }
 
 func mainTORQUE() {
@@ -23,18 +61,26 @@ func mainTORQUE() {
 	counts := torque.CollectFreeSlots()
 	var _ = counts
 	rows := []string{
-		"Number of Nodes  \tProperties\tUtilization\tFree slots",
-		"---------------  \t----------\t-----------\t----------"}
+		"Numb Nodes\tProperties\tUtilization\tFree slots",
+		"----------\t----------\t-----------\t----------"}
 
 	keys := make([]torque.NodeStatus, 0, len(counts))
 	for k := range counts {
 		keys = append(keys, k)
 	}
+
 	fun.Sort(func(a, b torque.NodeStatus) bool {
-		return float64(a.NpAlloc)/float64(a.NpTotal) <
-			float64(b.NpAlloc)/float64(b.NpTotal)
+		if a.Properties == b.Properties {
+			return float64(a.NpAlloc)/float64(a.NpTotal) <
+				float64(b.NpAlloc)/float64(b.NpTotal)
+		}
+		return a.Properties < b.Properties
 	}, keys)
+
 	for _, k := range keys {
+		if k.NpTotal == k.NpAlloc {
+			continue
+		}
 		rows = append(rows, fmt.Sprintf("%d\t%s\t%d/%d\t%d",
 			counts[k], k.Properties, k.NpAlloc, k.NpTotal, k.NpTotal-k.NpAlloc))
 	}
@@ -47,13 +93,14 @@ func mainSGE() {
 	counts := sge.CollectFreeSlots()
 
 	rows := []string{
-		"Number of Nodes  \tQueue\tUtilization\tFree slots",
-		"---------------  \t-----\t-----------\t----------"}
+		"Num Nodes\tQueue\tUtilization\tFree slots",
+		"---------\t-----\t-----------\t----------"}
 
 	keys := make([]sge.NodeStatus, 0, len(counts))
 	for k := range counts {
 		keys = append(keys, k)
 	}
+
 	fun.Sort(func(a, b sge.NodeStatus) bool {
 		if a.Queue == b.Queue {
 			return float64(a.NpAlloc)/float64(a.NpTotal) <
@@ -61,10 +108,15 @@ func mainSGE() {
 		}
 		return a.Queue < b.Queue
 	}, keys)
+
 	for _, k := range keys {
+		if k.NpTotal == k.NpAlloc {
+			continue
+		}
 		rows = append(rows, fmt.Sprintf("%d\t%s\t%d/%d\t%d",
 			counts[k], k.Queue, k.NpAlloc, k.NpTotal, k.NpTotal-k.NpAlloc))
 	}
+
 	printTable(rows)
 }
 
