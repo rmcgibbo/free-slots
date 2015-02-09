@@ -10,6 +10,11 @@ import (
 	"strings"
 )
 
+func IsSGE() bool {
+	_, err := exec.LookPath("qhost")
+	return err == nil
+}
+
 type NodeStatus struct {
 	Queue   string
 	NpAlloc int

@@ -13,6 +13,8 @@ import (
 func main() {
 	if torque.IsTorque() {
 		mainTORQUE()
+	} else if sge.IsSGE() {
+		mainSGE()
 	}
 }
 
@@ -45,8 +47,8 @@ func mainSGE() {
 	counts := sge.CollectFreeSlots()
 
 	rows := []string{
-		"Number of Nodes\tQueue\tUtilization\tFree slots",
-		"---------------\t-----\t-----------\t----------"}
+		"Number of Nodes  \tQueue\tUtilization\tFree slots",
+		"---------------  \t-----\t-----------\t----------"}
 
 	keys := make([]sge.NodeStatus, 0, len(counts))
 	for k := range counts {
@@ -54,7 +56,8 @@ func mainSGE() {
 	}
 	fun.Sort(func(a, b sge.NodeStatus) bool {
 		if a.Queue == b.Queue {
-			return (a.NpTotal - a.NpAlloc) > (b.NpTotal - b.NpAlloc)
+			return float64(a.NpAlloc)/float64(a.NpTotal) <
+				float64(b.NpAlloc)/float64(b.NpTotal)
 		}
 		return a.Queue < b.Queue
 	}, keys)
