@@ -61,8 +61,8 @@ func mainTORQUE() {
 	counts := torque.CollectFreeSlots()
 	var _ = counts
 	rows := []string{
-		"Numb Nodes\tProperties\tUtilization\tFree slots",
-		"----------\t----------\t-----------\t----------"}
+		"Num Nodes\tProperties\tUtilization\tFree slots",
+		"---------\t----------\t-----------\t----------"}
 
 	keys := make([]torque.NodeStatus, 0, len(counts))
 	for k := range counts {
