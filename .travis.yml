@@ -7,5 +7,5 @@ install:
   - export GOPATH=`pwd`
 
 script:
- - go run main.go
+ - go run main.go || echo ""
  - ls
