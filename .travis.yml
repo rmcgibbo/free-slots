@@ -8,14 +8,15 @@ install:
   - export GOPATH=`pwd`
 
 script:
-  - go run main.go || echo ""
+  - go build
+  - ./free-slots || echo ""
   - ls
 
 deploy:
   provider: releases
   api_key:
     secure: VcetYNrSOPamkN8WBi576vJfvhWAV6B4f26djeGbbFyjOFWuFG8ukXWZEj6kXtjxeaELrg5B6MQ5K4QaS2/vRwYxXc00eq6+Huyo8b8HPIHuXDUC+NK0pTBIa+cRQH0/7E2SRZSO+2fVE1c/XObw9/Pq6YZLxjpaxbmBgz3G7KE=
-  file: "./free-slots"
+  file: free-slots
   on:
     repo: rmcgibbo/free-slots
     tags: true
