@@ -1,21 +1,24 @@
 language: go
 
 go:
-  - 1.4.1
+  - release
 
 install:
   - export GOPATH=`pwd`
 
 script:
+  - go test ./...
   - go build
   - ./free-slots || echo ""
-  - ls
+
+after_success:
+  - tar -czvf free-slots-linux-amd64.tar.gz free-slots
 
 deploy:
   provider: releases
   api_key:
     secure: VcetYNrSOPamkN8WBi576vJfvhWAV6B4f26djeGbbFyjOFWuFG8ukXWZEj6kXtjxeaELrg5B6MQ5K4QaS2/vRwYxXc00eq6+Huyo8b8HPIHuXDUC+NK0pTBIa+cRQH0/7E2SRZSO+2fVE1c/XObw9/Pq6YZLxjpaxbmBgz3G7KE=
-  file: free-slots
+  file: free-slots-linux-amd64.tar.gz
   on:
     repo: rmcgibbo/free-slots
     tags: true
