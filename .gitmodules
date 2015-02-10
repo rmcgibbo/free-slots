@@ -1,0 +1,3 @@
+[submodule "src/github.com/BurntSushi/ty"]
+	path = src/github.com/BurntSushi/ty
+	url = https://github.com/BurntSushi/ty
